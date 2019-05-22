@@ -212,9 +212,9 @@ public class PolySet : HashSet<Polygon>
         }
     }
 
-    public static Polygon FindPolyInPolyset(Vector3 a, Vector3 b, Vector3 c, List<Polygon> polyList, Planet planet)
+    public static Polygon FindPolyInPolyset(Vector3 a, Vector3 b, Vector3 c, PolySet polySet, Planet planet)
     {
-        foreach (Polygon poly in polyList)
+        foreach (Polygon poly in polySet)
         {
             List<int> vertices = poly.m_Vertices;
             if (planet.m_Vertices[vertices[0]] == a && 

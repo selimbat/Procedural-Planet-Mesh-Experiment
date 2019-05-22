@@ -110,8 +110,8 @@ public class Planet : MonoBehaviour
 
         // Back to land for a while! We start by making it green. =)
 
-        landPolys.ApplyRandomClanColors(colorBlueClan, colorRedClan);
-
+        //landPolys.ApplyRandomClanColors(colorBlueClan, colorRedClan);
+        landPolys.ApplyColor(colorGrass);
         // The Extrude function will raise the land Polygons up out of the water.
         // It also generates a strip of new Polygons to connect the newly raised land
         // back down to the water level. We can color this vertical strip of land brown like dirt.
