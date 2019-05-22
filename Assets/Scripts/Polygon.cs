@@ -9,6 +9,7 @@ public class Polygon
     public List<Polygon> m_Neighbors;      // Links to this Polygon's three neighbors.
     public Color32       m_Color;          // What color do we want this poly to be?
     public bool          m_SmoothNormals;  // Is this poly part of a surface that we want to look smooth?
+    public int           m_triangleIndex = -1;
 
     public Polygon(int a, int b, int c)
     {
@@ -56,6 +57,16 @@ public class Polygon
                 return;
             }
         }
+    }
+
+    public bool CheckIfCircled(Color32 enemyClanColor)
+    {
+        bool circled = true;
+        foreach(Polygon neighborPoly in m_Neighbors)
+        {
+            circled &= neighborPoly.m_Color.Equals(enemyClanColor);
+        }
+        return circled;
     }
 }
 
@@ -171,5 +182,48 @@ public class PolySet : HashSet<Polygon>
     {
         foreach (Polygon poly in this)
             poly.m_Color = c;
+    }
+
+    public void ApplyRandomClanColors(Color32 c1, Color32 c2)
+    {
+        foreach (Polygon poly in this)
+        {
+            int wichClan = Random.Range(0,2);
+            poly.m_Color = (wichClan == 1) ? c1 : c2;
+        }
+    }
+
+    public void ApplyRedClanConquest(Color32 clanColor, Color32 consquestColor, Color32 circledColor)
+    {
+        foreach(Polygon poly in this)
+        {
+            if (Random.Range(0,20) == 0)
+            {
+                poly.m_Color = clanColor;
+                foreach(Polygon neighborPoly in poly.m_Neighbors)
+                {
+                    if (neighborPoly.CheckIfCircled(clanColor))
+                    {
+                        neighborPoly.m_Color = circledColor;
+                    }
+                }
+                poly.m_Color = consquestColor;
+            }
+        }
+    }
+
+    public static Polygon FindPolyInPolyset(Vector3 a, Vector3 b, Vector3 c, List<Polygon> polyList, Planet planet)
+    {
+        foreach (Polygon poly in polyList)
+        {
+            List<int> vertices = poly.m_Vertices;
+            if (planet.m_Vertices[vertices[0]] == a && 
+                planet.m_Vertices[vertices[1]] == b && 
+                planet.m_Vertices[vertices[2]] == c)
+            {
+                return poly;
+            }
+        }
+        return null;
     }
 }

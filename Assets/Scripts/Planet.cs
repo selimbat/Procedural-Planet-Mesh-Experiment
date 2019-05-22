@@ -21,14 +21,18 @@ public class Planet : MonoBehaviour
     public float m_HillSizeMax   = 1.0f;
     public float m_HillSizeMin   = 0.1f;
 
+    public PolySet m_landPolys;
+    public PolySet m_oceanPolys;
+
     // Internally, the Planet object stores its meshes as a child GameObjects:
     GameObject m_GroundMesh;
     GameObject m_OceanMesh;
 
     // The subdivided icosahedron that we use to generate our planet is represented as a list
     // of Polygons, and a list of Vertices for those Polygons:
-    List<Polygon> m_Polygons;
-    List<Vector3> m_Vertices;
+    public List<Polygon> m_Polygons;
+    public List<Vector3> m_Vertices;
+
 
     public void Start()
     {
@@ -49,6 +53,9 @@ public class Planet : MonoBehaviour
         Color32 colorGrass     = new Color32(  0, 220,   0,   0);
         Color32 colorDirt      = new Color32(180, 140,  20,   0);
         Color32 colorDeepOcean = new Color32(  0,  40, 110,   0);
+        Color32 colorBlueClan  = new Color32(  0,   0, 255,   0);
+        Color32 colorRedClan   = new Color32(255,   0,   0,   0);
+
 
         foreach (Polygon p in m_Polygons)
             p.m_Color = colorOcean;
@@ -71,6 +78,8 @@ public class Planet : MonoBehaviour
             landPolys.UnionWith(newLand);
         }
 
+        m_landPolys = landPolys;
+
         // While we're here, let's make a group of oceanPolys. It's pretty simple: Any Polygon that isn't in the landPolys set
         // must be in the oceanPolys set instead.
 
@@ -81,6 +90,8 @@ public class Planet : MonoBehaviour
             if (!landPolys.Contains(poly))
                 oceanPolys.Add(poly);
         }
+
+        m_oceanPolys = oceanPolys;
 
         // Let's create the ocean surface as a separate mesh.
         // First, let's make a copy of the oceanPolys so we can
@@ -99,10 +110,7 @@ public class Planet : MonoBehaviour
 
         // Back to land for a while! We start by making it green. =)
 
-        foreach (Polygon landPoly in landPolys)
-        {
-            landPoly.m_Color = colorGrass;
-        }
+        landPolys.ApplyRandomClanColors(colorBlueClan, colorRedClan);
 
         // The Extrude function will raise the land Polygons up out of the water.
         // It also generates a strip of new Polygons to connect the newly raised land
@@ -113,13 +121,13 @@ public class Planet : MonoBehaviour
         sides.ApplyColor(colorDirt);
 
         sides.ApplyAmbientOcclusionTerm(1.0f, 0.0f);
-
+        /*
         // Grab additional polygons to generate hills, but only from the set of polygons that are land.
 
         PolySet hillPolys = landPolys.RemoveEdges();
 
         sides = Inset(hillPolys, 0.03f);
-        sides.ApplyColor(colorGrass);
+        sides.ApplyRandomClanColors(colorBlueClan, colorRedClan);
         sides.ApplyAmbientOcclusionTerm(0.0f, 1.0f);
 
         sides = Extrude(hillPolys, 0.05f);
@@ -127,7 +135,7 @@ public class Planet : MonoBehaviour
 
         //Hills have dark ambient occlusion on the bottom, and light on top.
         sides.ApplyAmbientOcclusionTerm(1.0f, 0.0f);
-
+        */
         // Time to return to the oceans.
 
         sides = Extrude(oceanPolys, -0.02f);
@@ -151,6 +159,7 @@ public class Planet : MonoBehaviour
             Destroy(m_GroundMesh);
 
         m_GroundMesh = GenerateMesh("Ground Mesh", m_GroundMaterial);
+        m_GroundMesh.AddComponent<ClickableTriangles>();
     }
 
     public void InitAsIcosohedron()
@@ -446,6 +455,10 @@ public class Planet : MonoBehaviour
         {
             var poly = m_Polygons[i];
 
+            Debug.Log("Polygon " + i + "has vertices " + poly.m_Vertices[0] + ", " + poly.m_Vertices[1] + ", " + poly.m_Vertices[2]);
+
+            poly.m_triangleIndex = i;
+
             indices[i * 3 + 0] = i * 3 + 0;
             indices[i * 3 + 1] = i * 3 + 1;
             indices[i * 3 + 2] = i * 3 + 2;
@@ -490,6 +503,8 @@ public class Planet : MonoBehaviour
 
         MeshFilter terrainFilter = meshObject.AddComponent<MeshFilter>();
         terrainFilter.mesh = terrainMesh;
+        MeshCollider terrainCollider = meshObject.AddComponent<MeshCollider>();
+        terrainCollider.sharedMesh = terrainMesh;
 
         return meshObject;
     }
