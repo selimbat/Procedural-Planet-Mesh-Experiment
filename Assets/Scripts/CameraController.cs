@@ -10,7 +10,7 @@ public class CameraController : MonoBehaviour
     public float m_MouseDragSensitivity = 1.0f; // How fast does the planet spin when you click and drag?
     public float m_MouseZoomSensitivity = 1.0f; // How fast does the mouse wheel zoom you in and out?
 
-    public float m_MinZoom = 2.0f;  // How close to the planet can the camera get?
+    public float m_MinZoom = 1.6f;  // How close to the planet can the camera get?
     public float m_MaxZoom = 10.0f; // ...And how far?
 
     Vector3 m_PrevMousePosition; // In order to track how the player is dragging the mouse, we need to store what

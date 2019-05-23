@@ -61,11 +61,10 @@ public class ClickableTriangles : MonoBehaviour
                     foreach (Polygon poly in zoneToBeCircled.Value)
                     {
                         t++;
-                        Color32 paintingColor = Color32.Lerp(new Color32(255, 0, 0, 0), new Color32(0, 255, 255, 0), t / zoneToBeCircled.Value.Count);
-                        colors32[triangles[poly.m_triangleIndex * 3 + 0]] = paintingColor;
-                        colors32[triangles[poly.m_triangleIndex * 3 + 1]] = paintingColor;
-                        colors32[triangles[poly.m_triangleIndex * 3 + 2]] = paintingColor;
-                        poly.m_Color = paintingColor;
+                        colors32[triangles[poly.m_triangleIndex * 3 + 0]] = _redClanColor;
+                        colors32[triangles[poly.m_triangleIndex * 3 + 1]] = _redClanColor;
+                        colors32[triangles[poly.m_triangleIndex * 3 + 2]] = _redClanColor;
+                        poly.m_Color = _redClanColor;
                         poly.m_territory = Territory.RedClan;
                     }
                 }
@@ -102,10 +101,11 @@ public class ClickableTriangles : MonoBehaviour
     {
         depth++;
         checkedPolys.Add(currentPoly);
+        /*
         if (depth > 10 || checkedPolys.Count > 10)
         {
             return new KeyValuePair<bool, PolySet>(false, checkedPolys);
-        }
+        }*/
         bool isCircled = true;
         foreach (Polygon neighborPoly in currentPoly.m_Neighbors)
         {

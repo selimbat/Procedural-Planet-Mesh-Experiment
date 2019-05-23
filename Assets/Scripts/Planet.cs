@@ -40,7 +40,7 @@ public class Planet : MonoBehaviour
         // to work with.
 
         InitAsIcosohedron();
-        Subdivide(3);
+        Subdivide(4);
 
         // When we begin extruding polygons, we'll need each one to know who its immediate
         //neighbors are. Calculate that now.
