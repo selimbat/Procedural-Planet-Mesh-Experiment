@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum Territory { Neutral, RedClan, BlueClan, Cliff, Ocean }
-
 public class Polygon
 {
     public List<int>     m_Vertices;       // Indices of the three vertices that make up this Polygon.
@@ -62,14 +60,10 @@ public class Polygon
         }
     }
 
-    public bool CheckIfCircled(Color32 enemyClanColor)
+    public void UpdateClan(Clan clan)
     {
-        bool circled = true;
-        foreach(Polygon neighborPoly in m_Neighbors)
-        {
-            circled &= neighborPoly.m_Color.Equals(enemyClanColor);
-        }
-        return circled;
+        m_Color = ClansInfos.ClanColor[clan];
+        m_territory = ClansInfos.ClanTerritory[clan];
     }
 }
 
@@ -202,33 +196,12 @@ public class PolySet : HashSet<Polygon>
         }
     }
 
-    public void ApplyRedClanConquest(Color32 clanColor, Color32 consquestColor, Color32 circledColor)
+    public static Polygon FindPolyInPolyset(int triangleIndex, Planet planet)
     {
-        foreach(Polygon poly in this)
-        {
-            if (Random.Range(0,20) == 0)
-            {
-                poly.m_Color = clanColor;
-                foreach(Polygon neighborPoly in poly.m_Neighbors)
-                {
-                    if (neighborPoly.CheckIfCircled(clanColor))
-                    {
-                        neighborPoly.m_Color = circledColor;
-                    }
-                }
-                poly.m_Color = consquestColor;
-            }
-        }
-    }
-
-    public static Polygon FindPolyInPolyset(Vector3 a, Vector3 b, Vector3 c, Planet planet)
-    {
+        //TODO changer ça pour un parcours de liste en cherchant this.m_indexTriangle dans planet.m_landPolys
         foreach (Polygon poly in planet.m_landPolys)
         {
-            List<int> vertices = poly.m_Vertices;
-            if (planet.m_Vertices[vertices[0]] == a && 
-                planet.m_Vertices[vertices[1]] == b && 
-                planet.m_Vertices[vertices[2]] == c)
+            if (poly.m_triangleIndex == triangleIndex)
             {
                 return poly;
             }

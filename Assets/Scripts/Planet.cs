@@ -53,9 +53,6 @@ public class Planet : MonoBehaviour
         Color32 colorGrass     = new Color32(  0, 220,   0,   0);
         Color32 colorDirt      = new Color32(180, 140,  20,   0);
         Color32 colorDeepOcean = new Color32(  0,  40, 110,   0);
-        Color32 colorBlueClan  = new Color32(  0,   0, 255,   0);
-        Color32 colorRedClan   = new Color32(255,   0,   0,   0);
-
 
         foreach (Polygon p in m_Polygons)
             p.m_Color = colorOcean;

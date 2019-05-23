@@ -6,7 +6,6 @@ public class ClickableTriangles : MonoBehaviour
 {
     private Camera _mainCamera;
     private Planet _planet;
-    private Color32 _redClanColor = new Color32(255, 0, 0, 0);
 
     private void Awake()
     {
@@ -14,89 +13,76 @@ public class ClickableTriangles : MonoBehaviour
         _planet = GetComponentInParent<Planet>();
     }
 
-    public void OnMouseDown()
+    public void Update()
     {
-        RaycastHit hit;
-        if (!Physics.Raycast(_mainCamera.ScreenPointToRay(Input.mousePosition), out hit))
+        if (Input.GetMouseButton(0))
         {
-            return;
+            RaycastHit hit;
+            if (!Physics.Raycast(_mainCamera.ScreenPointToRay(Input.mousePosition), out hit))
+            {
+                return;
+            }
+
+            MeshCollider meshCollider = hit.collider as MeshCollider;
+            if (meshCollider == null || meshCollider.sharedMesh == null)
+            {
+                return;
+            }
+
+            Mesh mesh = meshCollider.sharedMesh;
+            int[] triangles = mesh.triangles;
+            Color32[] colors32 = mesh.colors32;
+
+            // search for the Polygon object representing the clicked triangle among 
+            // the land polygons of the planet.
+            Polygon hitPoly = PolySet.FindPolyInPolyset(hit.triangleIndex, _planet);
+
+            // if the Polygon object is not a land polygon
+            if (hitPoly == null || hitPoly.m_territory == Territory.RedClan)
+            {
+                return;
+            }
+
+            // Change the color of the clicked triangle
+            ColorTriangle(triangles, hit.triangleIndex, ref colors32, Clan.RedClan);
+
+            // Make sure we update the color and territory properties of the hit polygon
+            hitPoly.UpdateClan(Clan.RedClan);
+
+            // See if a zone has been circled
+            LookForCircledZonesInNeighbors(hitPoly, triangles, ref colors32);
+
+            mesh.colors32 = colors32;
         }
+    }
 
-        MeshCollider meshCollider = hit.collider as MeshCollider;
-        if (meshCollider == null || meshCollider.sharedMesh == null)
+    private void ColorTriangle(int[] triangles, int triangleIndex, ref Color32[] colors32, Clan clan)
+    {
+        colors32[triangles[triangleIndex * 3 + 0]] = ClansInfos.ClanColor[clan];
+        colors32[triangles[triangleIndex * 3 + 1]] = ClansInfos.ClanColor[clan];
+        colors32[triangles[triangleIndex * 3 + 2]] = ClansInfos.ClanColor[clan];
+    }
+
+    private void LookForCircledZonesInNeighbors(Polygon hitPoly, int[] triangles, ref Color32[] colors32)
+    {
+        foreach (Polygon neighborPoly in hitPoly.m_Neighbors)
         {
-            return;
-        }
-
-        Mesh mesh = meshCollider.sharedMesh;
-        Vector3[] vertices = mesh.vertices;
-        int[] triangles = mesh.triangles;
-        Color32[] colors32 = mesh.colors32;
-
-        // Change the color of the clicked triangle
-        colors32[triangles[hit.triangleIndex * 3 + 0]] = _redClanColor;
-        colors32[triangles[hit.triangleIndex * 3 + 1]] = _redClanColor;
-        colors32[triangles[hit.triangleIndex * 3 + 2]] = _redClanColor;
-
-        // Get the Polygon object representing the clicked triangle and check if its 
-        // neighbors are now circled.
-        Polygon hitPoly = PolySet.FindPolyInPolyset(vertices[hit.triangleIndex * 3 + 0],
-                                                    vertices[hit.triangleIndex * 3 + 1],
-                                                    vertices[hit.triangleIndex * 3 + 2],
-                                                    _planet);
-
-        // Make sure we update the color and territory properties of the hit polygon
-        hitPoly.m_Color = _redClanColor;
-        hitPoly.m_territory = Territory.RedClan;
-        
-        foreach(Polygon neighborPoly in hitPoly.m_Neighbors)
-        {
-            if (neighborPoly.m_territory == Territory.Neutral)
+            if (neighborPoly.m_territory == Territory.Neutral || neighborPoly.m_territory == Territory.BlueClan)
             {
                 KeyValuePair<bool, PolySet> zoneToBeCircled = IsZoneCircled(neighborPoly, new PolySet() { });
                 if (zoneToBeCircled.Key)
                 {
-                    Debug.Log("Zone encerclée de taille : " + zoneToBeCircled.Value.Count);
-                    float t = 0;
+                    Debug.Log("Territorial combo : " + zoneToBeCircled.Value.Count + " zones!!!");
                     foreach (Polygon poly in zoneToBeCircled.Value)
                     {
-                        t++;
-                        colors32[triangles[poly.m_triangleIndex * 3 + 0]] = _redClanColor;
-                        colors32[triangles[poly.m_triangleIndex * 3 + 1]] = _redClanColor;
-                        colors32[triangles[poly.m_triangleIndex * 3 + 2]] = _redClanColor;
-                        poly.m_Color = _redClanColor;
-                        poly.m_territory = Territory.RedClan;
+                        ColorTriangle(triangles, poly.m_triangleIndex, ref colors32, Clan.RedClan);
+                        poly.UpdateClan(Clan.RedClan);
                     }
                 }
             }
         }
 
-        mesh.colors32 = colors32;
     }
-
-    private List<PolySet> RecursiveLookForLoops(Polygon currentPoly, Polygon rootPoly, PolySet checkedPolys, PolySet circledPolys)
-    {
-        if (currentPoly == rootPoly)
-        {
-            // add polygons of the cycle to circledPolys
-            return new List<PolySet>() { checkedPolys, circledPolys };
-        }
-        else
-        {
-            checkedPolys.Add(currentPoly);
-            foreach (Polygon neighborPoly in currentPoly.m_Neighbors)
-            {
-                if (neighborPoly.m_Color.Equals(_redClanColor) && !checkedPolys.Contains(neighborPoly))
-                {
-                    List<PolySet> result = RecursiveLookForLoops(neighborPoly, rootPoly, checkedPolys, circledPolys);
-                    checkedPolys = result[0];
-                    circledPolys = result[1];
-                }
-            }
-            return new List<PolySet>() { checkedPolys, circledPolys };
-        }
-    }
-
     private KeyValuePair<bool,PolySet> IsZoneCircled(Polygon currentPoly, PolySet checkedPolys, int depth = 0)
     {
         depth++;

@@ -8,7 +8,7 @@ using UnityEngine;
 public class CameraController : MonoBehaviour
 {
     public float m_MouseDragSensitivity = 1.0f; // How fast does the planet spin when you click and drag?
-    public float m_MouseZoomSensitivity = 1.0f; // How fast does the mouse wheel zoom you in and out?
+    public float m_MouseZoomSensitivity = -1.0f; // How fast does the mouse wheel zoom you in and out?
 
     public float m_MinZoom = 1.6f;  // How close to the planet can the camera get?
     public float m_MaxZoom = 10.0f; // ...And how far?
@@ -28,7 +28,7 @@ public class CameraController : MonoBehaviour
     {
         Vector3 currentMousePosition = Input.mousePosition;
 
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(1))
         {
             // When the user first clicks the mouse button, we snap m_PrevMousePosition to the current mouse position.
             // This solves a problem where, if the application doesn't have focus, m_PrevMousePosition won't be updated.
@@ -38,7 +38,7 @@ public class CameraController : MonoBehaviour
             m_PrevMousePosition = currentMousePosition;
         }
 
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButton(1))
         {
             // So long as the mouse button is held down, track how far it has been moved in screen-space each frame.
 
