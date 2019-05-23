@@ -112,6 +112,7 @@ public class Planet : MonoBehaviour
 
         //landPolys.ApplyRandomClanColors(colorBlueClan, colorRedClan);
         landPolys.ApplyColor(colorGrass);
+        landPolys.ApplyTerritory(Territory.Neutral);
         // The Extrude function will raise the land Polygons up out of the water.
         // It also generates a strip of new Polygons to connect the newly raised land
         // back down to the water level. We can color this vertical strip of land brown like dirt.
@@ -119,6 +120,7 @@ public class Planet : MonoBehaviour
         sides = Extrude(landPolys, 0.05f);
 
         sides.ApplyColor(colorDirt);
+        sides.ApplyTerritory(Territory.Cliff);
 
         sides.ApplyAmbientOcclusionTerm(1.0f, 0.0f);
         /*
@@ -140,18 +142,23 @@ public class Planet : MonoBehaviour
 
         sides = Extrude(oceanPolys, -0.02f);
         sides.ApplyColor(colorOcean);
+        sides.ApplyTerritory(Territory.Ocean);
         sides.ApplyAmbientOcclusionTerm(0.0f, 1.0f);
 
         sides = Inset(oceanPolys, 0.02f);
         sides.ApplyColor(colorOcean);
+        sides.ApplyTerritory(Territory.Ocean);
         sides.ApplyAmbientOcclusionTerm(1.0f, 0.0f);
 
         var deepOceanPolys = oceanPolys.RemoveEdges();
 
         sides = Extrude(deepOceanPolys, -0.05f);
         sides.ApplyColor(colorDeepOcean);
+        sides.ApplyTerritory(Territory.Ocean);
 
         deepOceanPolys.ApplyColor(colorDeepOcean);
+        deepOceanPolys.ApplyTerritory(Territory.Ocean);
+
 
         // Okay, we're done! Let's generate an actual game mesh for this planet.
 
@@ -454,8 +461,6 @@ public class Planet : MonoBehaviour
         for (int i = 0; i < m_Polygons.Count; i++)
         {
             var poly = m_Polygons[i];
-
-            Debug.Log("Polygon " + i + "has vertices " + poly.m_Vertices[0] + ", " + poly.m_Vertices[1] + ", " + poly.m_Vertices[2]);
 
             poly.m_triangleIndex = i;
 

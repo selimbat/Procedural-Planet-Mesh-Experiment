@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum Territory { Neutral, RedClan, BlueClan, Cliff, Ocean }
+
 public class Polygon
 {
     public List<int>     m_Vertices;       // Indices of the three vertices that make up this Polygon.
@@ -10,6 +12,7 @@ public class Polygon
     public Color32       m_Color;          // What color do we want this poly to be?
     public bool          m_SmoothNormals;  // Is this poly part of a surface that we want to look smooth?
     public int           m_triangleIndex = -1;
+    public Territory     m_territory;
 
     public Polygon(int a, int b, int c)
     {
@@ -184,6 +187,12 @@ public class PolySet : HashSet<Polygon>
             poly.m_Color = c;
     }
 
+    public void ApplyTerritory(Territory territory)
+    {
+        foreach (Polygon poly in this)
+            poly.m_territory = territory;
+    }
+
     public void ApplyRandomClanColors(Color32 c1, Color32 c2)
     {
         foreach (Polygon poly in this)
@@ -212,9 +221,9 @@ public class PolySet : HashSet<Polygon>
         }
     }
 
-    public static Polygon FindPolyInPolyset(Vector3 a, Vector3 b, Vector3 c, PolySet polySet, Planet planet)
+    public static Polygon FindPolyInPolyset(Vector3 a, Vector3 b, Vector3 c, Planet planet)
     {
-        foreach (Polygon poly in polySet)
+        foreach (Polygon poly in planet.m_landPolys)
         {
             List<int> vertices = poly.m_Vertices;
             if (planet.m_Vertices[vertices[0]] == a && 

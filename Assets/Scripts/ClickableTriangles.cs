@@ -43,41 +43,35 @@ public class ClickableTriangles : MonoBehaviour
         Polygon hitPoly = PolySet.FindPolyInPolyset(vertices[hit.triangleIndex * 3 + 0],
                                                     vertices[hit.triangleIndex * 3 + 1],
                                                     vertices[hit.triangleIndex * 3 + 2],
-                                                    _planet.m_landPolys,
                                                     _planet);
 
-        // Make sure we update the color property of the hit polygon
+        // Make sure we update the color and territory properties of the hit polygon
         hitPoly.m_Color = _redClanColor;
-
+        hitPoly.m_territory = Territory.RedClan;
+        
         foreach(Polygon neighborPoly in hitPoly.m_Neighbors)
         {
-            if (!neighborPoly.m_Color.Equals(_redClanColor))
+            if (neighborPoly.m_territory == Territory.Neutral)
             {
                 KeyValuePair<bool, PolySet> zoneToBeCircled = IsZoneCircled(neighborPoly, new PolySet() { });
                 if (zoneToBeCircled.Key)
                 {
+                    Debug.Log("Zone encerclée de taille : " + zoneToBeCircled.Value.Count);
+                    float t = 0;
                     foreach (Polygon poly in zoneToBeCircled.Value)
                     {
-                        colors32[triangles[poly.m_triangleIndex * 3 + 0]] = _redClanColor;
-                        colors32[triangles[poly.m_triangleIndex * 3 + 1]] = _redClanColor;
-                        colors32[triangles[poly.m_triangleIndex * 3 + 2]] = _redClanColor;
-                        poly.m_Color = _redClanColor;
+                        t++;
+                        Color32 paintingColor = Color32.Lerp(new Color32(255, 0, 0, 0), new Color32(0, 255, 255, 0), t / zoneToBeCircled.Value.Count);
+                        colors32[triangles[poly.m_triangleIndex * 3 + 0]] = paintingColor;
+                        colors32[triangles[poly.m_triangleIndex * 3 + 1]] = paintingColor;
+                        colors32[triangles[poly.m_triangleIndex * 3 + 2]] = paintingColor;
+                        poly.m_Color = paintingColor;
+                        poly.m_territory = Territory.RedClan;
                     }
                 }
             }
         }
-        /*
-        foreach(Polygon neighborPoly in hitPoly.m_Neighbors)
-        {
-            if (neighborPoly.CheckIfCircled(_redClanColor))
-            {
-                colors32[triangles[neighborPoly.m_triangleIndex * 3 + 0]] = _redClanColor;
-                colors32[triangles[neighborPoly.m_triangleIndex * 3 + 1]] = _redClanColor;
-                colors32[triangles[neighborPoly.m_triangleIndex * 3 + 2]] = _redClanColor;
-                neighborPoly.m_Color = _redClanColor;
-            }
-        }*/
-        
+
         mesh.colors32 = colors32;
     }
 
@@ -108,14 +102,20 @@ public class ClickableTriangles : MonoBehaviour
     {
         depth++;
         checkedPolys.Add(currentPoly);
-        if (depth > 10)
+        if (depth > 10 || checkedPolys.Count > 10)
         {
             return new KeyValuePair<bool, PolySet>(false, checkedPolys);
         }
         bool isCircled = true;
         foreach (Polygon neighborPoly in currentPoly.m_Neighbors)
         {
-            if (!checkedPolys.Contains(neighborPoly) && !neighborPoly.m_Color.Equals(_redClanColor))
+            if (neighborPoly.m_territory == Territory.Cliff || neighborPoly.m_territory == Territory.Ocean)
+            {
+                return new KeyValuePair<bool, PolySet>(false, checkedPolys);
+            }
+            else if (!checkedPolys.Contains(neighborPoly) &&
+                        (neighborPoly.m_territory == Territory.Neutral ||
+                         neighborPoly.m_territory == Territory.BlueClan))
             {
                 KeyValuePair<bool, PolySet> result = IsZoneCircled(neighborPoly, checkedPolys, depth);
                 checkedPolys = result.Value;
